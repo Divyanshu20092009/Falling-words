@@ -63,3 +63,46 @@ body {
     background: #101318;
     border: 1px solid #303640;
 }
+
+#start-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#start-screen[hidden] {
+    display: none;
+}
+
+
+#start-button {
+    border: 0;
+    border-radius: 4px;
+    padding: 0.75rem 1.25rem;
+    background: #efba65;
+    color: #0b0d11;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#start-button:hover {
+    background: #f5cc89;
+}
+
+#start-button:focus-visible {
+    outline: 2px solid #efba65;
+    outline-offset: 3px;
+}
+
+.word {
+    position: absolute;
+    top: 1rem;
+    width: max-content;
+    max-width: 100%;
+    font-size: 1.125rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
