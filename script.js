@@ -213,7 +213,7 @@ function updateGame(timestamp) {
   lastFrameTime = timestamp;
 
   const previousSecond = Math.floor(activeSeconds);
-  activeSeconds += elapsed;
+  activeSeconds += frameTime;
   if (correctLetters > 0 && activeSeconds >= previousSecond + 1) {
     updateStats();
   }
