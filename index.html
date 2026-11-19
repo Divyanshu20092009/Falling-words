@@ -1,42 +1,52 @@
-<DOCTYPE html>
-    <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>Falling Words</title>
-            <link rel="stylesheet" href="style.css">
-            <script src="script.js" defer></script>
-        </head>
-        <body>
-            <main class="game">
-                <header class="game-header">
-                    <h1>FALLING WORDS</h1>
-                </header>
-
-                <d1 class="hud">
-                    <div class="hud-item">
-                        <dt>SCORE</dt>
-                        <dd id="score">0</dd>
-                    </div>
-                    <div class="hud-item">
-                        <dt>LIVES</dt>
-                        <dd id="lives">3</dd>
-                    </div>
-                    <div class="hud-item">
-                        <dt>COMBO</dt>
-                        <dd id="combo">0</dd>
-
-                    </div>
-                </d1>
-                <button id="pause-button" type="button" disabled>Pause</button>
-                </header>
-    <section id="arena" aria-label="Gameplay arena"></section>
-    <div id="start-screen">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Falling Words</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="game">
+    <header class="game-header">
+      <h1>Falling Words</h1>
+      <dl class="hud">
+        <div class="hud-item">
+          <dt>Score</dt>
+          <dd id="score">0000</dd>
+        </div>
+        <div class="hud-item">
+          <dt>Level</dt>
+          <dd id="level">01</dd>
+        </div>
+        <div class="hud-item">
+          <dt>Combo</dt>
+          <dd id="combo">—</dd>
+        </div>
+        <div class="hud-item">
+          <dt>Lives</dt>
+          <dd id="lives">3</dd>
+        </div>
+      </dl>
+    </header>
+    <section id="arena" aria-label="Gameplay arena">
+      <div id="start-screen">
         <p id="game-over" hidden></p>
-        <button id="start-button" type="button">START GAME</button>
-    </div>
-</section>
+        <button id="start-button" type="button" aria-describedby="game-over">START GAME</button>
+      </div>
+    </section>
+    <footer class="game-footer">
+      <div class="shortcuts">
+        <span><kbd>Esc</kbd> clear</span>
+        <span><kbd>Backspace</kbd> delete</span>
+        <span><kbd>Shift+P</kbd> pause</span>
+      </div>
+      <p id="typing-status">Start typing</p>
+      <div class="controls">
+        <button id="pause-button" type="button" disabled>Pause</button>
+      </div>
+    </footer>
   </main>
 </body>
 </html>
-

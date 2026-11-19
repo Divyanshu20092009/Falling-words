@@ -3,7 +3,9 @@ const startScreen = document.getElementById("start-screen");
 const startButton = document.getElementById("start-button");
 const pauseButton = document.getElementById("pause-button");
 const gameOverMessage = document.getElementById("game-over");
+const typingStatus = document.getElementById("typing-status");
 const scoreDisplay = document.getElementById("score");
+const levelDisplay = document.getElementById("level");
 const livesDisplay = document.getElementById("lives");
 const comboDisplay = document.getElementById("combo");
 
@@ -22,6 +24,20 @@ let timeSinceSpawn = 0;
 let target = null;
 let typedCount = 0;
 let frameId;
+
+function difficultyStage() {
+  return Math.min(Math.floor(combo / 5), 4);
+}
+
+function formatScore(value) {
+  return String(value).padStart(4, "0");
+}
+
+function updateHud() {
+  scoreDisplay.textContent = formatScore(score);
+  levelDisplay.textContent = String(difficultyStage() + 1).padStart(2, "0");
+  comboDisplay.textContent = combo || "—";
+}
 
 function updateLives() {
   livesDisplay.replaceChildren();
@@ -56,6 +72,7 @@ function removeWord(index, completed = false) {
   if (word === target) {
     target = null;
     typedCount = 0;
+    updateTyping();
   }
 
   if (completed) {
@@ -68,35 +85,52 @@ function removeWord(index, completed = false) {
   }
 }
 
+function updateTyping(prefix = "", wrong = false) {
+  typingStatus.textContent = prefix || "Start typing";
+  typingStatus.classList.toggle("wrong", wrong);
+}
+
 function updateWord() {
   const element = target.element;
   const text = element.textContent;
   element.classList.remove("wrong");
+  const typed = text.slice(0, typedCount);
+  updateTyping(typed);
 
   if (typedCount === 0) {
     element.textContent = text;
+    target = null;
     return;
   }
 
   const prefix = document.createElement("span");
   prefix.className = "typed";
-  prefix.textContent = text.slice(0, typedCount);
+  prefix.textContent = typed;
   element.replaceChildren(prefix, text.slice(typedCount));
 }
 
 function handleKeydown(event) {
-  if (frameId === undefined || event.ctrlKey || event.altKey || event.metaKey) {
+  if (pauseButton.disabled || event.ctrlKey || event.altKey || event.metaKey) {
     return;
   }
 
-  if (event.key === "Backspace") {
+  if (event.shiftKey && event.key.toLowerCase() === "p") {
+    event.preventDefault();
+    if (!event.repeat) {
+      togglePause();
+    }
+    return;
+  }
+
+  if (frameId === undefined) {
+    return;
+  }
+
+  if (event.key === "Backspace" || event.key === "Escape") {
     event.preventDefault();
     if (target) {
-      typedCount -= 1;
+      typedCount = event.key === "Escape" ? 0 : typedCount - 1;
       updateWord();
-      if (typedCount === 0) {
-        target = null;
-      }
     }
     return;
   }
@@ -120,6 +154,7 @@ function handleKeydown(event) {
   const text = target.element.textContent;
   if (letter !== text[typedCount]) {
     target.element.classList.add("wrong");
+    updateTyping(text.slice(0, typedCount), true);
     return;
   }
 
@@ -127,8 +162,7 @@ function handleKeydown(event) {
   if (typedCount === text.length) {
     combo += 1;
     score += 10 + (combo - 1) * 2;
-    scoreDisplay.textContent = score;
-    comboDisplay.textContent = combo;
+    updateHud();
     removeWord(activeWords.indexOf(target), true);
     return;
   }
@@ -141,7 +175,7 @@ function updateGame(timestamp) {
   const frameTime = Math.min(elapsed, maxFrameTime);
   lastFrameTime = timestamp;
 
-  let stage = Math.min(Math.floor(combo / 5), 4);
+  let stage = difficultyStage();
   const fallDistance = (baseFallSpeed + stage * 10) * frameTime;
   const bottom = arena.clientHeight;
   for (let index = activeWords.length - 1; index >= 0; index--) {
@@ -157,7 +191,7 @@ function updateGame(timestamp) {
     lives -= 1;
     updateLives();
     combo = 0;
-    comboDisplay.textContent = combo;
+    updateHud();
     stage = 0;
 
     if (lives === 0) {
@@ -180,12 +214,12 @@ function togglePause() {
   if (frameId !== undefined) {
     cancelAnimationFrame(frameId);
     frameId = undefined;
-    pauseButton.textContent = "RESUME";
+    pauseButton.textContent = "Resume";
     return;
   }
 
   lastFrameTime = undefined;
-  pauseButton.textContent = "PAUSE";
+  pauseButton.textContent = "Pause";
   frameId = requestAnimationFrame(updateGame);
 }
 
@@ -195,7 +229,7 @@ function endGame() {
   }
   frameId = undefined;
   pauseButton.disabled = true;
-  gameOverMessage.textContent = `GAME OVER\nFINAL SCORE: ${score}`;
+  gameOverMessage.textContent = `GAME OVER\nFINAL SCORE: ${formatScore(score)}`;
   gameOverMessage.hidden = false;
   startButton.textContent = "RESTART";
   startScreen.hidden = false;
@@ -211,15 +245,14 @@ function startGame() {
   score = 0;
   lives = 3;
   combo = 0;
-  scoreDisplay.textContent = score;
+  updateHud();
   updateLives();
-  comboDisplay.textContent = combo;
   lastFrameTime = undefined;
   timeSinceSpawn = 0;
 
   gameOverMessage.hidden = true;
   startScreen.hidden = true;
-  pauseButton.textContent = "PAUSE";
+  pauseButton.textContent = "Pause";
   pauseButton.disabled = false;
   createWord();
   frameId = requestAnimationFrame(updateGame);
