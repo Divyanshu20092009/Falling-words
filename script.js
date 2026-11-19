@@ -4,11 +4,13 @@ const startButton = document.getElementById("start-button");
 const livesDisplay = document.getElementById("lives");
 const scoreDisplay = document.getElementById("score");
 const comboDisplay = document.getElementById("combo");
+const pauseButton = document.getElementById("pause-button");
+const gameOverMessage = document.getElementById("game-over");
 
 const words = ["leaf", "river", "brick", "cloud", "stone", "apple", "forest", "moon", "trail", "lantern"];
 
 const basefallSpeed = 50;
-const basSspawnInterval = 2.1;
+const baseSpawnInterval = 2.1;
 const maxFrameTime = 0.05;
 
 const activeWords = [];
@@ -19,6 +21,18 @@ let lastFrameTime;
 let timeSinceSpawn = 0;
 let target = null;
 let typedCount = 0;
+let frameid;
+
+function updateLives() {
+    livesDisplay.replaceChildren();
+    livesDisplay.setAttribute("aria-label", `${lives} ${lives === 1 ? "life" : "lives"} remaining`);
+    for (let index = 0; index < lives; index++) {
+        const icon = document.createElement("img");
+        icon.src = "life-icon.png";
+        icon.alt = "";
+        livesDisplay.appendChild(icon);
+    }
+}
 
 function createWord() {
   const text = words[Math.floor(Math.random() * words.length)];
@@ -35,9 +49,8 @@ function createWord() {
   activeWords.push({ element: word, y });
 }
 
-function removeWord(index) {
+function removeWord(index, completed = false)  {
   const word = activeWords[index];
-  word.element.remove();
   activeWords.splice(index, 1);
 
   if (word === target) {
@@ -45,6 +58,17 @@ function removeWord(index) {
     typedCount = 0;
   }
 }
+
+if (completed) {
+    words.element.className = "word burning";
+    words.element.replaceChildren(words.element.textContent);
+    words.element.setAttribute("aria-hidden", "true");
+    setTimeout(() => word.element.remove(), 600);
+} else {
+    words.element.remove();
+}
+
+
 
 function updateWord() {
   const element = target.element;
@@ -63,7 +87,7 @@ function updateWord() {
 }
 
 function handleKeydown(event) {
-  if (!startScreen.hidden || lives === 0 || event.ctrlKey || event.altKey || event.metaKey) {
+  if (frameid === undefined || lives === 0 || event.ctrlKey || event.altKey || event.metaKey) {
     return;
   }
 
@@ -121,7 +145,7 @@ function updateGame(timestamp) {
 
 
   let stage = Math.min(Math.floor(combo / 5), 4);
-  const fallDistance = (baseFallSpeed + stage * 10) * frameTime;
+  const fallDistance = (basefallSpeed + stage * 10) * frameTime;
   const bottom = arena.clientHeight;
   for (let index = activeWords.length - 1; index >= 0; index--) {
     const word = activeWords[index];
@@ -148,19 +172,63 @@ function updateGame(timestamp) {
   }
 
   timeSinceSpawn += frameTime;
-  if (timeSinceSpawn >= spawnInterval) {
+  if (timeSinceSpawn >= baseSpawnInterval) {
     createWord();
-    timeSinceSpawn -= spawnInterval;
+    timeSinceSpawn -= baseSpawnInterval;
   }
 
-  requestAnimationFrame(updateGame);
+  frameid = requestAnimationFrame(updateGame);
+}
+
+function togglePause() {
+    if (frameid !== undefined) {
+        cancelAnimationFrame(frameid);
+        frameid = undefined;
+        pauseButton.textContent = "RESUME";
+        return;
+    }
+    lastFrameTime = undefined;
+    pauseButton.textContent = "Pause";
+    frameid = requestAnimationFrame(updateGame);
+}
+
+function endGame() {
+    while (activeWords.length > 0) {
+        removeWord(activeWords.length - 1);
+    }
+    frameid = undefined;
+    pauseButton.disabled =  true;
+    gameOverMessage.textContent = `Game Over\nFINAL SCORE: ${score}`;
+    gameOverMessage.hidden = false;
+    startButton.textContent = "RESTART";
+    startScreen.hidden = false;
+    startButton.focus();
 }
 
 function startGame() {
-  startScreen.hidden = true;
-  createWord();
-  requestAnimationFrame(updateGame);
+    if (startScreen.hidden) {
+        return;
+    }
+
+    arena.replaceChildren(startScreen);
+    score = 0;
+    lives = 3;
+    combo = 0;
+    scoreDisplay.textContent = score;
+    updateLives();
+    comboDisplay.textContent = combo;
+    lastFrameTime = undefined;
+    timeSinceSpawn = 0;
+
+    gameOverMessage.hidden = true;
+    startScreen.hidden = true;
+    pauseButton.textContent = "Pause";
+    pauseButton.disabled = false;
+    createWord();
+    frameid = requestAnimationFrame(updateGame);
 }
 
-startButton.addEventListener("click", startGame, { once: true });
+updateLives();
+startButton.addEventListener("click", startGame);
+pauseButton.addEventListener("click", togglePause);
 document.addEventListener("keydown", handleKeydown);

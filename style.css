@@ -56,6 +56,17 @@ body {
     font-weight: 700;
 }
 
+#lives {
+    min-height: 1.5rem;
+    text-align: left;
+}
+
+#lives img {
+    height: 1.25rem;
+    margin-inline: 1px;
+    vertical-align: middle;
+}
+
 #arena {
     position: relative;
     height: 50vh;
@@ -69,8 +80,17 @@ body {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1rem; 
+}
+
+#game-over {
+    margin: 0;
+    text-align: center;
+    font-weight: 700;
+    white-space: pre-line;
 }
 
 #start-screen[hidden] {
@@ -78,7 +98,8 @@ body {
 }
 
 
-#start-button {
+#start-button,
+#pause-button {
     border: 0;
     border-radius: 4px;
     padding: 0.75rem 1.25rem;
@@ -89,13 +110,20 @@ body {
     cursor: pointer;
 }
 
-#start-button:hover {
+#start-button:hover,
+#pause-button:enabled:hover {
     background: #f5cc89;
+    cursor: pointer;
 }
 
-#start-button:focus-visible {
+#start-button:focus-visible,
+#pause-button:focus-visible {
     outline: 2px solid #efba65;
     outline-offset: 3px;
+}
+
+#pause-button:disabled {
+    opacity: 0.5;
 }
 
 .word {
@@ -114,4 +142,9 @@ body {
 
 .word.wrong {
     color: #ff8181;
+}
+
+.word.burning {
+    color: transparent;
+    background: url("fire.gif") center / contain no-repeat;
 }
