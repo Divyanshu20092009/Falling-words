@@ -2,8 +2,11 @@ const arena = document.getElementById("arena");
 const startScreen = document.getElementById("start-screen");
 const startButton = document.getElementById("start-button");
 const pauseButton = document.getElementById("pause-button");
+const soundButton = document.getElementById("sound-button");
 const gameOverMessage = document.getElementById("game-over");
 const typingStatus = document.getElementById("typing-status");
+const wpmDisplay = document.getElementById("wpm");
+const accuracyDisplay = document.getElementById("accuracy");
 const scoreDisplay = document.getElementById("score");
 const levelDisplay = document.getElementById("level");
 const livesDisplay = document.getElementById("lives");
@@ -14,6 +17,7 @@ const words = ["leaf", "river", "brick", "cloud", "stone", "apple", "forest", "m
 const baseFallSpeed = 50;
 const baseSpawnInterval = 2.1;
 const maxFrameTime = 0.05;
+const bestScoreKey = 'falling-words-best';
 
 const activeWords = [];
 let score = 0;
@@ -24,6 +28,19 @@ let timeSinceSpawn = 0;
 let target = null;
 let typedCount = 0;
 let frameId;
+let correctLetters = 0;
+let letterAttempts = 0;
+let activeSeconds = 0;
+let bestScore = 0;
+let soundOn = false;
+let audio;
+
+try {
+  const savedScore = Number(localStorage.getItem(bestScoreKey));
+  if ( Number.isSafeInteger(savedScore) && savedScore > 0) {
+    bestScore = savedScore;
+  }
+} catch {} 
 
 function difficultyStage() {
   return Math.min(Math.floor(combo / 5), 4);
@@ -90,6 +107,12 @@ function updateTyping(prefix = "", wrong = false) {
   typingStatus.classList.toggle("wrong", wrong);
 }
 
+function updateStats() {
+  const wpm = activeSeconds ? Math.round((correctLetters / 5) *60 / activeSeconds) : 0;
+  wpmDisplay.textContent = String(wpm).padStart(2 , "0");
+  accuracyDisplay.textContent = letterAttempts ? `${Math.round(correctLetters * 100 / letterAttempts)}%` : "_"
+}
+
 function updateWord() {
   const element = target.element;
   const text = element.textContent;
@@ -135,7 +158,7 @@ function handleKeydown(event) {
     return;
   }
 
-  if (!/^[a-z]$/i.test(event.key)) {
+  if ( event.repeat || !/^[a-z]$/i.test(event.key)) {
     return;
   }
 
@@ -146,15 +169,21 @@ function handleKeydown(event) {
         target = word;
       }
     }
-    if (!target) {
-      return;
-    }
   }
 
-  const text = target.element.textContent;
-  if (letter !== text[typedCount]) {
-    target.element.classList.add("wrong");
-    updateTyping(text.slice(0, typedCount), true);
+  const text = target?.element.textContent;
+  const accepted = letter === text?.[typedCount];
+  letterAttempts += 1;
+  if (accepted) {
+    correctLetters += 1;
+  }
+  updateStats();
+
+  if (!accepted) {
+    if (target) {
+      target.element.classList.add("wrong");
+      updateTyping(text.slice(0, typedCount), true);
+    }
     return;
   }
 
@@ -163,17 +192,31 @@ function handleKeydown(event) {
     combo += 1;
     score += 10 + (combo - 1) * 2;
     updateHud();
+    if (score > bestScore) {
+      bestScore = score;
+      try {
+        localStorage.setItem(bestScoreKey, String(score));
+      } catch {}
+    }
     removeWord(activeWords.indexOf(target), true);
+    playSound(740, 0.16);
     return;
   }
 
   updateWord();
+  playSound(520, 0.06);
 }
 
 function updateGame(timestamp) {
   const elapsed = (timestamp - (lastFrameTime ?? timestamp)) / 1000;
   const frameTime = Math.min(elapsed, maxFrameTime);
   lastFrameTime = timestamp;
+
+  const previousSecond = Math.floor(activeSeconds);
+  activeSeconds += elapsed;
+  if (correctLetters > 0 && activeSeconds >= previousSecond + 1) {
+    updateStats();
+  }
 
   let stage = difficultyStage();
   const fallDistance = (baseFallSpeed + stage * 10) * frameTime;
@@ -198,6 +241,7 @@ function updateGame(timestamp) {
       endGame();
       return;
     }
+    playSound(220, 0.14);
   }
 
   const spawnInterval = baseSpawnInterval - stage * 0.2;
@@ -223,17 +267,48 @@ function togglePause() {
   frameId = requestAnimationFrame(updateGame);
 }
 
+function toggleSound() {
+  soundOn = !soundOn;
+  soundButton.textContent = soundOn ? "SoundOn" : "Sound off";
+  if (SoundOn) {
+    try {
+      audio ??= new AudioContext();
+      audio.resume().catch(() => {});
+    } catch {}
+  }
+}
+
+function playsound(frequency, duration) {
+  if (!soundOn || audio?.state !== "running") {
+    return;
+  }
+
+  try {
+    const tone = audio.createOscillator();
+    const volume = audio.createGain();
+    const now = audio.currentTime;
+    tone.frequency.value = frequency;
+    volume.gain.setValueAtTime(0.055, now);
+    volume.gain.exponenetialRampToValueAtTime(0.001, now + duration);
+    tone.connect(volume).connect(audio.destination);
+    tone.start(now);
+    tone.stop(now + duration);
+  } catch {}
+}
+
 function endGame() {
   while (activeWords.length > 0) {
     removeWord(activeWords.length - 1);
   }
   frameId = undefined;
   pauseButton.disabled = true;
-  gameOverMessage.textContent = `GAME OVER\nFINAL SCORE: ${formatScore(score)}`;
+  updateStats();
+  gameOverMessage.textContent = `GAME OVER\nFINAL SCORE: ${formatScore(score)}\nBEST SCORE: ${formatScore(bestScore)}`;
   gameOverMessage.hidden = false;
   startButton.textContent = "RESTART";
   startScreen.hidden = false;
   startButton.focus();
+  playSound(130, 0.28);
 }
 
 function startGame() {
@@ -245,8 +320,12 @@ function startGame() {
   score = 0;
   lives = 3;
   combo = 0;
+  correctletters = 0;
+  letterattempts = 0;
+  activeSeconds = 0;
   updateHud();
   updateLives();
+  updateStats();
   lastFrameTime = undefined;
   timeSinceSpawn = 0;
 
@@ -261,4 +340,5 @@ function startGame() {
 updateLives();
 startButton.addEventListener("click", startGame);
 pauseButton.addEventListener("click", togglePause);
+soundButton.addEventListener("click", toggleSound);
 document.addEventListener("keydown", handleKeydown);

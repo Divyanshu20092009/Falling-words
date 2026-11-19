@@ -42,9 +42,13 @@
         <span><kbd>Backspace</kbd> delete</span>
         <span><kbd>Shift+P</kbd> pause</span>
       </div>
-      <p id="typing-status">Start typing</p>
+      <div class="typing">
+        <p id="typing-status">Start Typing</p>
+        <p class="typing-stats">WPM <span id="wpm">00</span>  · Accuracy <span id="accuracy">-</span></p>
+      </div>
       <div class="controls">
         <button id="pause-button" type="button" disabled>Pause</button>
+        <button id="sound-button" type="button">Sound off</button>
       </div>
     </footer>
   </main>

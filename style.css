@@ -166,12 +166,28 @@ h1,
   font: inherit;
 }
 
+.typing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 #typing-status {
   font-size: 1.25rem;
 }
 
 #typing-status::after {
   content: "_";
+}
+
+.typing {
+    text-align: center;
+}
+
+.typing-stats {
+    margin: 0.3rem 0 0;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .controls {
@@ -204,4 +220,33 @@ button:focus-visible {
 
 button:disabled {
   opacity: 0.5;
+}
+
+button:disabled {
+    opacity: 0.5;
+}
+
+@media ( max-width: 100px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    .hud,
+    .shortcuts {
+        gap: 1rem 1rem;
+    }
+
+    .game-footer {
+        flex-direction: column;
+        gap: 0.75;
+    }
+
+    .shortcuts,
+    .controls {
+        justify-content: center;
+    }
+
+    .word {
+        font-size: 1.5rem;
+    }
 }
