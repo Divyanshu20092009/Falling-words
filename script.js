@@ -1,15 +1,15 @@
 const arena = document.getElementById("arena");
 const startScreen = document.getElementById("start-screen");
 const startButton = document.getElementById("start-button");
-const livesDisplay = document.getElementById("lives");
-const scoreDisplay = document.getElementById("score");
-const comboDisplay = document.getElementById("combo");
 const pauseButton = document.getElementById("pause-button");
 const gameOverMessage = document.getElementById("game-over");
+const scoreDisplay = document.getElementById("score");
+const livesDisplay = document.getElementById("lives");
+const comboDisplay = document.getElementById("combo");
 
 const words = ["leaf", "river", "brick", "cloud", "stone", "apple", "forest", "moon", "trail", "lantern"];
 
-const basefallSpeed = 50;
+const baseFallSpeed = 50;
 const baseSpawnInterval = 2.1;
 const maxFrameTime = 0.05;
 
@@ -21,17 +21,17 @@ let lastFrameTime;
 let timeSinceSpawn = 0;
 let target = null;
 let typedCount = 0;
-let frameid;
+let frameId;
 
 function updateLives() {
-    livesDisplay.replaceChildren();
-    livesDisplay.setAttribute("aria-label", `${lives} ${lives === 1 ? "life" : "lives"} remaining`);
-    for (let index = 0; index < lives; index++) {
-        const icon = document.createElement("img");
-        icon.src = "life-icon.png";
-        icon.alt = "";
-        livesDisplay.appendChild(icon);
-    }
+  livesDisplay.replaceChildren();
+  livesDisplay.setAttribute("aria-label", `${lives} ${lives === 1 ? "life" : "lives"} remaining`);
+  for (let index = 0; index < lives; index++) {
+    const icon = document.createElement("img");
+    icon.src = "life-icon.png";
+    icon.alt = "";
+    livesDisplay.appendChild(icon);
+  }
 }
 
 function createWord() {
@@ -49,7 +49,7 @@ function createWord() {
   activeWords.push({ element: word, y });
 }
 
-function removeWord(index, completed = false)  {
+function removeWord(index, completed = false) {
   const word = activeWords[index];
   activeWords.splice(index, 1);
 
@@ -57,18 +57,16 @@ function removeWord(index, completed = false)  {
     target = null;
     typedCount = 0;
   }
-}
 
-if (completed) {
-    words.element.className = "word burning";
-    words.element.replaceChildren(words.element.textContent);
-    words.element.setAttribute("aria-hidden", "true");
+  if (completed) {
+    word.element.className = "word burning";
+    word.element.replaceChildren(word.element.textContent);
+    word.element.setAttribute("aria-hidden", "true");
     setTimeout(() => word.element.remove(), 600);
-} else {
-    words.element.remove();
+  } else {
+    word.element.remove();
+  }
 }
-
-
 
 function updateWord() {
   const element = target.element;
@@ -87,7 +85,7 @@ function updateWord() {
 }
 
 function handleKeydown(event) {
-  if (frameid === undefined || lives === 0 || event.ctrlKey || event.altKey || event.metaKey) {
+  if (frameId === undefined || event.ctrlKey || event.altKey || event.metaKey) {
     return;
   }
 
@@ -127,11 +125,11 @@ function handleKeydown(event) {
 
   typedCount += 1;
   if (typedCount === text.length) {
-    combo += 1;1
+    combo += 1;
     score += 10 + (combo - 1) * 2;
     scoreDisplay.textContent = score;
     comboDisplay.textContent = combo;
-    removeWord(activeWords.indexOf(target));
+    removeWord(activeWords.indexOf(target), true);
     return;
   }
 
@@ -143,13 +141,12 @@ function updateGame(timestamp) {
   const frameTime = Math.min(elapsed, maxFrameTime);
   lastFrameTime = timestamp;
 
-
   let stage = Math.min(Math.floor(combo / 5), 4);
-  const fallDistance = (basefallSpeed + stage * 10) * frameTime;
+  const fallDistance = (baseFallSpeed + stage * 10) * frameTime;
   const bottom = arena.clientHeight;
   for (let index = activeWords.length - 1; index >= 0; index--) {
     const word = activeWords[index];
-    word.y += fallSpeed * frameTime;
+    word.y += fallDistance;
 
     if (word.y + word.element.offsetHeight < bottom) {
       word.element.style.top = `${word.y}px`;
@@ -158,74 +155,74 @@ function updateGame(timestamp) {
 
     removeWord(index);
     lives -= 1;
-    livesDisplay.textContent = lives;
+    updateLives();
     combo = 0;
     comboDisplay.textContent = combo;
     stage = 0;
 
     if (lives === 0) {
-      while (activeWords.length > 0) {
-        removeWord(activeWords.length - 1);
-      }
+      endGame();
       return;
     }
   }
 
+  const spawnInterval = baseSpawnInterval - stage * 0.2;
   timeSinceSpawn += frameTime;
-  if (timeSinceSpawn >= baseSpawnInterval) {
+  if (timeSinceSpawn >= spawnInterval) {
     createWord();
-    timeSinceSpawn -= baseSpawnInterval;
+    timeSinceSpawn -= spawnInterval;
   }
 
-  frameid = requestAnimationFrame(updateGame);
+  frameId = requestAnimationFrame(updateGame);
 }
 
 function togglePause() {
-    if (frameid !== undefined) {
-        cancelAnimationFrame(frameid);
-        frameid = undefined;
-        pauseButton.textContent = "RESUME";
-        return;
-    }
-    lastFrameTime = undefined;
-    pauseButton.textContent = "Pause";
-    frameid = requestAnimationFrame(updateGame);
+  if (frameId !== undefined) {
+    cancelAnimationFrame(frameId);
+    frameId = undefined;
+    pauseButton.textContent = "RESUME";
+    return;
+  }
+
+  lastFrameTime = undefined;
+  pauseButton.textContent = "PAUSE";
+  frameId = requestAnimationFrame(updateGame);
 }
 
 function endGame() {
-    while (activeWords.length > 0) {
-        removeWord(activeWords.length - 1);
-    }
-    frameid = undefined;
-    pauseButton.disabled =  true;
-    gameOverMessage.textContent = `Game Over\nFINAL SCORE: ${score}`;
-    gameOverMessage.hidden = false;
-    startButton.textContent = "RESTART";
-    startScreen.hidden = false;
-    startButton.focus();
+  while (activeWords.length > 0) {
+    removeWord(activeWords.length - 1);
+  }
+  frameId = undefined;
+  pauseButton.disabled = true;
+  gameOverMessage.textContent = `GAME OVER\nFINAL SCORE: ${score}`;
+  gameOverMessage.hidden = false;
+  startButton.textContent = "RESTART";
+  startScreen.hidden = false;
+  startButton.focus();
 }
 
 function startGame() {
-    if (startScreen.hidden) {
-        return;
-    }
+  if (startScreen.hidden) {
+    return;
+  }
 
-    arena.replaceChildren(startScreen);
-    score = 0;
-    lives = 3;
-    combo = 0;
-    scoreDisplay.textContent = score;
-    updateLives();
-    comboDisplay.textContent = combo;
-    lastFrameTime = undefined;
-    timeSinceSpawn = 0;
+  arena.replaceChildren(startScreen);
+  score = 0;
+  lives = 3;
+  combo = 0;
+  scoreDisplay.textContent = score;
+  updateLives();
+  comboDisplay.textContent = combo;
+  lastFrameTime = undefined;
+  timeSinceSpawn = 0;
 
-    gameOverMessage.hidden = true;
-    startScreen.hidden = true;
-    pauseButton.textContent = "Pause";
-    pauseButton.disabled = false;
-    createWord();
-    frameid = requestAnimationFrame(updateGame);
+  gameOverMessage.hidden = true;
+  startScreen.hidden = true;
+  pauseButton.textContent = "PAUSE";
+  pauseButton.disabled = false;
+  createWord();
+  frameId = requestAnimationFrame(updateGame);
 }
 
 updateLives();
