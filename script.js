@@ -110,7 +110,7 @@ function updateTyping(prefix = "", wrong = false) {
 function updateStats() {
   const wpm = activeSeconds ? Math.round((correctLetters / 5) *60 / activeSeconds) : 0;
   wpmDisplay.textContent = String(wpm).padStart(2 , "0");
-  accuracyDisplay.textContent = letterAttempts ? `${Math.round(correctLetters * 100 / letterAttempts)}%` : "_"
+  accuracyDisplay.textContent = letterAttempts ? `${Math.round(correctLetters * 100 / letterAttempts)}%` : "_";
 }
 
 function updateWord() {
@@ -269,8 +269,8 @@ function togglePause() {
 
 function toggleSound() {
   soundOn = !soundOn;
-  soundButton.textContent = soundOn ? "SoundOn" : "Sound off";
-  if (SoundOn) {
+  soundButton.textContent = soundOn ? "Sound On" : "Sound off";
+  if (soundOn) {
     try {
       audio ??= new AudioContext();
       audio.resume().catch(() => {});
@@ -278,7 +278,7 @@ function toggleSound() {
   }
 }
 
-function playsound(frequency, duration) {
+function playSound(frequency, duration) {
   if (!soundOn || audio?.state !== "running") {
     return;
   }
@@ -289,7 +289,7 @@ function playsound(frequency, duration) {
     const now = audio.currentTime;
     tone.frequency.value = frequency;
     volume.gain.setValueAtTime(0.055, now);
-    volume.gain.exponenetialRampToValueAtTime(0.001, now + duration);
+    volume.gain.exponentialRampToValueAtTime(0.001, now + duration);
     tone.connect(volume).connect(audio.destination);
     tone.start(now);
     tone.stop(now + duration);
@@ -320,8 +320,8 @@ function startGame() {
   score = 0;
   lives = 3;
   combo = 0;
-  correctletters = 0;
-  letterattempts = 0;
+  correctLetters = 0;
+  letterAttempts = 0;
   activeSeconds = 0;
   updateHud();
   updateLives();

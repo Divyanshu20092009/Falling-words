@@ -148,7 +148,7 @@ h1,
 }
 
 .game-footer {
-  padding-block: clamp(1rem, 3vw, 2.5rem);
+  padding-block: clamp(1rem, 3vw, 1.875rem);
   color: var(--muted);
   font: 1.0625rem var(--mono);
 }
@@ -166,12 +166,6 @@ h1,
   font: inherit;
 }
 
-.typing {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 #typing-status {
   font-size: 1.25rem;
 }
@@ -181,13 +175,13 @@ h1,
 }
 
 .typing {
-    text-align: center;
+  text-align: center;
 }
 
 .typing-stats {
-    margin: 0.3rem 0 0;
-    font-size: 0.8125rem;
-    font-variant-numeric: tabular-nums;
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .controls {
@@ -222,31 +216,27 @@ button:disabled {
   opacity: 0.5;
 }
 
-button:disabled {
-    opacity: 0.5;
-}
+@media (max-width: 700px) {
+  body {
+    padding: 0.5rem;
+  }
 
-@media ( max-width: 100px) {
-    body {
-        padding: 0.5rem;
-    }
+  .hud,
+  .shortcuts {
+    gap: 0.5rem 1rem;
+  }
 
-    .hud,
-    .shortcuts {
-        gap: 1rem 1rem;
-    }
+  .game-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 
-    .game-footer {
-        flex-direction: column;
-        gap: 0.75;
-    }
+  .shortcuts,
+  .controls {
+    justify-content: center;
+  }
 
-    .shortcuts,
-    .controls {
-        justify-content: center;
-    }
-
-    .word {
-        font-size: 1.5rem;
-    }
+  .word {
+    font-size: 1.5rem;
+  }
 }
