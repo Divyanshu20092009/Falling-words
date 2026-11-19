@@ -106,3 +106,12 @@ body {
     font-weight: 700;
     overflow-wrap: anywhere;
 }
+
+
+.word .typed {
+    color: #efba65;
+}
+
+.word.wrong {
+    color: #ff8181;
+}
