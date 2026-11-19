@@ -2,15 +2,19 @@ const arena = document.getElementById("arena");
 const startScreen = document.getElementById("start-screen");
 const startButton = document.getElementById("start-button");
 const livesDisplay = document.getElementById("lives");
+const scoreDisplay = document.getElementById("score");
+const comboDisplay = document.getElementById("combo");
 
 const words = ["leaf", "river", "brick", "cloud", "stone", "apple", "forest", "moon", "trail", "lantern"];
 
-const fallSpeed = 50;
-const spawnInterval = 2.1;
+const basefallSpeed = 50;
+const basSspawnInterval = 2.1;
 const maxFrameTime = 0.05;
 
 const activeWords = [];
+let score = 0;
 let lives = 3;
+let combo = 0;
 let lastFrameTime;
 let timeSinceSpawn = 0;
 let target = null;
@@ -99,6 +103,10 @@ function handleKeydown(event) {
 
   typedCount += 1;
   if (typedCount === text.length) {
+    combo += 1;1
+    score += 10 + (combo - 1) * 2;
+    scoreDisplay.textContent = score;
+    comboDisplay.textContent = combo;
     removeWord(activeWords.indexOf(target));
     return;
   }
@@ -111,6 +119,9 @@ function updateGame(timestamp) {
   const frameTime = Math.min(elapsed, maxFrameTime);
   lastFrameTime = timestamp;
 
+
+  let stage = Math.min(Math.floor(combo / 5), 4);
+  const fallDistance = (baseFallSpeed + stage * 10) * frameTime;
   const bottom = arena.clientHeight;
   for (let index = activeWords.length - 1; index >= 0; index--) {
     const word = activeWords[index];
@@ -124,6 +135,9 @@ function updateGame(timestamp) {
     removeWord(index);
     lives -= 1;
     livesDisplay.textContent = lives;
+    combo = 0;
+    comboDisplay.textContent = combo;
+    stage = 0;
 
     if (lives === 0) {
       while (activeWords.length > 0) {
